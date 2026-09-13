@@ -19,6 +19,10 @@ CI tests Node 22/24 on Linux, Windows, and macOS. The launcher smoke test starts
 
 For Docker changes, build the image and verify a fresh persistent volume under the read-only Compose configuration. CI also builds and starts a Linux container. Release builds target linux/amd64 and linux/arm64.
 
+Dependabot keeps the Docker image on its current Node.js major version. Review runtime major upgrades separately, updating package-manager installation and the CI matrix together. Node 26's image does not include the Corepack command used by the current Dockerfile.
+
+npm version updates have a three-day cooldown. If Dependabot reports `ERR_PNPM_NO_MATURE_MATCHING_VERSION`, a dependency is still inside that waiting period. Retry the update after the named version is at least 72 hours old; keep the release-age protection enabled. This can affect updates to other packages when pnpm resolves the shared lockfile.
+
 Keep credentials, local configuration, databases, and packet captures out of Git. Sanitized captures must replace all account IDs, local keys, session tokens, device IDs, and network addresses. See SECURITY.md.
 
 For a new AC model, include its retail model, Haismart region, firmware, read-only status layout, and the exact controls verified. Unknown layouts must fail clearly instead of guessing write offsets. Do not remove the extended-layout model check to force support.
