@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#2563eb" />
+    <title>Haier AC Bridge</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Haier AC Bridge home"
+        ><span class="brand-mark" aria-hidden="true">≋</span
+        ><span>Haier AC Bridge<small>LOCAL COMFORT, SIMPLY CONNECTED</small></span></a
+      ><span class="local-badge"><span></span>Runs in your home</span>
+    </header>
+    <main>
+      <section id="unlock" class="welcome" hidden>
+        <div class="intro">
+          <p class="eyebrow">WELCOME HOME</p>
+          <h1>A little closer<br />to comfort.</h1>
+          <p>
+            Connect your Haismart air conditioners and control them from one place, right on your
+            home network.
+          </p>
+          <div class="intro-note">
+            Your ACs. Your network.<br />No bridge account or subscription.
+          </div>
+        </div>
+        <form id="unlock-form" class="panel unlock-panel">
+          <span class="step-number">01</span>
+          <h2>Unlock your bridge</h2>
+          <p>Enter the access code shown when you started the bridge.</p>
+          <label for="access-code">Bridge access code</label
+          ><input
+            id="access-code"
+            name="code"
+            type="password"
+            autocomplete="current-password"
+            placeholder="xxxx-xxxx-xxxx-xxxx"
+            required
+            maxlength="32"
+          /><button class="primary" type="submit">
+            Open my bridge <span aria-hidden="true">→</span>
+          </button>
+          <details>
+            <summary>Where is my code?</summary>
+            <p>
+              Look for <strong>Bridge access code</strong> in the terminal where you started the
+              bridge. If you used Start-mac or Start-windows, check the terminal window it opened.
+              For Docker Desktop, open the bridge container and select <strong>Logs</strong>. On a
+              NAS running Docker, open its container log.
+            </p>
+            <p>This is separate from your Haismart password. Keep it private.</p>
+          </details>
+          <p id="unlock-error" class="form-error" role="alert"></p>
+        </form>
+      </section>
+      <div id="application" hidden>
+        <nav class="tabs" aria-label="Main navigation">
+          <button data-view="home" class="active">My ACs</button
+          ><button data-view="add">Add AC</button><button data-view="settings">Settings</button
+          ><button id="lock" class="lock">Lock bridge</button>
+        </nav>
+        <section id="home" class="view">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">YOUR HOME, YOUR WAY</p>
+              <h1>Make yourself comfortable.</h1>
+              <p id="device-count">Your air conditioners, all in one place.</p>
+            </div>
+            <button id="refresh" class="secondary">↻ Refresh status</button>
+          </div>
+          <div id="devices" class="device-grid"></div>
+        </section>
+        <section id="add" class="view" hidden>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">A FEW SIMPLE STEPS</p>
+              <h1>Bring your ACs together.</h1>
+              <p>Pair your ACs in the Haismart app first, then connect them here.</p>
+            </div>
+          </div>
+          <div class="setup-layout">
+            <div>
+              <form id="cloud-form" class="panel">
+                <span class="step-number">01</span>
+                <h2>Connect Haismart</h2>
+                <p>
+                  Use the email or phone login from your Haismart account. We save a renewable
+                  session on this device; your submitted password is not saved.
+                </p>
+                <label for="username">Haismart email or phone</label
+                ><input
+                  id="username"
+                  name="username"
+                  autocomplete="username"
+                  required
+                  maxlength="320"
+                /><label for="password">Haismart password</label
+                ><input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autocomplete="current-password"
+                  required
+                  maxlength="1024"
+                /><label for="country">Account country calling code</label
+                ><input
+                  id="country"
+                  name="zoneInfo"
+                  list="countries"
+                  inputmode="numeric"
+                  pattern="[0-9]{1,4}"
+                  placeholder="For example, 92 for Pakistan"
+                  required
+                  maxlength="4"
+                /><datalist id="countries">
+                  <option value="92">Pakistan</option>
+                  <option value="91">India</option>
+                  <option value="880">Bangladesh</option>
+                  <option value="94">Sri Lanka</option>
+                  <option value="977">Nepal</option>
+                  <option value="60">Malaysia</option>
+                  <option value="65">Singapore</option>
+                  <option value="66">Thailand</option>
+                  <option value="62">Indonesia</option>
+                  <option value="63">Philippines</option>
+                  <option value="84">Vietnam</option></datalist
+                ><small
+                  >Use the country selected in Haismart, without the +. Cloud support currently uses
+                  Haismart's Southeast Asia service.</small
+                ><button class="primary" type="submit">Sign in & find my ACs →</button>
+                <p id="cloud-status" class="muted"></p>
+              </form>
+              <div class="panel">
+                <span class="step-number">02</span>
+                <h2>Choose your ACs</h2>
+                <p>
+                  Only add air conditioners. Other Haier appliances may also appear in your account.
+                </p>
+                <div class="button-row">
+                  <button id="cloud-reload" class="secondary">Load account devices</button
+                  ><button id="scan" class="secondary">Find on my network</button>
+                </div>
+                <p id="scan-status" class="muted" aria-live="polite"></p>
+                <div id="candidates">
+                  <p class="empty-inline">Sign in above to see your devices.</p>
+                </div>
+              </div>
+            </div>
+            <aside>
+              <div class="tip">
+                <p class="eyebrow">GOOD TO KNOW</p>
+                <h3>Keep it close to home.</h3>
+                <p>
+                  The bridge and ACs need to be on the same home network. After setup, normal
+                  controls go directly to each AC.
+                </p>
+                <p>
+                  Discovery can be blocked by Docker or guest Wi-Fi. You can enter an AC's IP
+                  address below or next to an account device.
+                </p>
+                <p>
+                  Apple-only sign-in requires a Haismart account password. hOn and SmartAir2 devices
+                  are not supported by this bridge.
+                </p>
+              </div>
+              <details class="panel">
+                <summary>Add by IP or local key</summary>
+                <p>Use this if discovery misses an AC, or if you already have its local key.</p>
+                <form id="manual-form">
+                  <label for="manual-host">AC's local IP address</label
+                  ><input id="manual-host" name="host" placeholder="192.168.1.50" required /><button
+                    id="probe"
+                    type="button"
+                    class="secondary"
+                  >
+                    Find AC at this address</button
+                  ><label for="manual-name">Room or AC name</label
+                  ><input
+                    id="manual-name"
+                    name="name"
+                    placeholder="Living room"
+                    required
+                    maxlength="80"
+                  /><label for="manual-device">Haier device ID</label
+                  ><input id="manual-device" name="deviceId" required maxlength="32" /><label
+                    for="manual-model"
+                    >Model identifier (if known)</label
+                  ><input id="manual-model" name="uplusId" maxlength="64" /><label for="manual-key"
+                    >Local key (optional when signed in)</label
+                  ><input
+                    id="manual-key"
+                    name="localKey"
+                    type="password"
+                    autocomplete="off"
+                    maxlength="32"
+                  /><label for="manual-version">Local key version</label
+                  ><input
+                    id="manual-version"
+                    name="localKeyVersion"
+                    type="number"
+                    min="1"
+                    step="1"
+                    value="1"
+                  /><button class="primary" type="submit">Add this AC</button>
+                </form>
+              </details>
+            </aside>
+          </div>
+        </section>
+        <section id="settings" class="view" hidden>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">MAKE IT YOURS</p>
+              <h1>A comfortable default.</h1>
+              <p>Choose what happens when you turn an AC on.</p>
+            </div>
+          </div>
+          <div class="settings-grid">
+            <form id="settings-form" class="panel">
+              <h2>Power-on preferences</h2>
+              <p>
+                By default, the AC keeps its previous settings. These preferences apply only when it
+                changes from off to on. Explicit controls take priority.
+              </p>
+              <div id="startup-fields" class="field-grid"></div>
+              <label class="checkbox"
+                ><input type="checkbox" name="linkQuietEco" />Link Quiet with Eco (Quiet on → Eco
+                off; Quiet off → Eco L3)</label
+              >
+              <div class="button-row">
+                <button type="submit" class="primary">Save preferences</button
+                ><button id="reset-defaults" type="button" class="secondary">
+                  Preserve AC settings
+                </button>
+              </div>
+            </form>
+            <div>
+              <section class="panel">
+                <h2>Haismart connection</h2>
+                <p id="account-state"></p>
+                <button id="cloud-logout" class="secondary">Disconnect Haismart</button>
+                <p class="muted">
+                  Saved local keys remain usable. Automatic key refresh needs a Haismart session.
+                </p>
+              </section>
+              <section class="panel">
+                <h2>Connect other apps</h2>
+                <p>
+                  Use the API token for integrations and automations. It grants full access to this
+                  bridge.
+                </p>
+                <button id="show-token" class="secondary">Show API token</button
+                ><code id="api-token" class="secret" hidden></code
+                ><a href="/docs" target="_blank" rel="noopener">Open API documentation ↗</a>
+              </section>
+              <section class="panel">
+                <h2>About this bridge</h2>
+                <p>Version <span id="version"></span> · Community project</p>
+                <p>Designed for compatible Haismart ACs. Support varies by model and firmware.</p>
+                <a
+                  href="https://github.com/zishanneno/haier-ac-bridge"
+                  target="_blank"
+                  rel="noopener"
+                  >Project & help ↗</a
+                >
+              </section>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div id="notice" role="status" aria-live="polite" hidden></div>
+    </main>
+    <footer>
+      Made for a more comfortable home.<span>Independent project · Not affiliated with Haier</span>
+    </footer>
+    <dialog id="edit-dialog">
+      <form id="edit-form">
+        <div class="dialog-heading">
+          <h2>Edit your AC</h2>
+          <button type="button" id="edit-close" class="secondary" aria-label="Close edit dialog">
+            ×
+          </button>
+        </div>
+        <input name="id" type="hidden" /><label for="edit-name">Name</label
+        ><input id="edit-name" name="name" required maxlength="80" /><label for="edit-host"
+          >Local IP address</label
+        ><input id="edit-host" name="host" required /><button class="primary" type="submit">
+          Save changes
+        </button>
+      </form>
+    </dialog>
+  </body>
+</html>

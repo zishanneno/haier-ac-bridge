@@ -1,0 +1,36 @@
+name: Bug or compatibility report
+description: Report a problem without sharing credentials or private data.
+body:
+  - type: markdown
+    attributes:
+      value: Do not include access codes, API tokens, passwords, local keys, account sessions, startup logs with codes, or your database.
+  - type: input
+    id: version
+    attributes:
+      label: Bridge version
+    validations:
+      required: true
+  - type: input
+    id: installation
+    attributes:
+      label: Installation method and operating system
+      placeholder: Docker on Windows, Docker on NAS, or direct Node.js
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: AC retail model, firmware, and Haismart region
+      description: Do not include serial numbers or account details.
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce and sanitized error message
+    validations:
+      required: true

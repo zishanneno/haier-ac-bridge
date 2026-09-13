@@ -1,0 +1,775 @@
+openapi: 3.1.0
+info:
+  title: Haier AC Bridge API
+  version: __PACKAGE_VERSION__
+  description: Local control for compatible Haier Haismart air conditioners. The browser UI uses an
+    authenticated session; API clients can use a bearer token or X-API-Key. By default, power-on
+    preserves the AC settings. Optional startup preferences apply only on an off-to-on transition.
+    Cloud login/device listing and LAN discovery are used during setup; normal reads and controls
+    use the LAN.
+servers:
+  - url: /
+security:
+  - bearerAuth: []
+  - apiKeyAuth: []
+  - browserSession: []
+paths:
+  /health:
+    get:
+      summary: Check bridge availability
+      security: []
+      responses:
+        "200":
+          description: Bridge is running
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                properties:
+                  ok:
+                    type: boolean
+                    const: true
+  /v1/devices:
+    get:
+      summary: List configured ACs
+      responses:
+        "200":
+          description: Configured devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Device"
+    post:
+      summary: Add an AC
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceInput"
+      responses:
+        "201":
+          description: Saved AC; read its status to test connectivity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+        "400": &a1
+          $ref: "#/components/responses/Error"
+        "401": &a2
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "502": &a3
+          description: AC or Haismart connection failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /v1/devices/{id}/status:
+    get:
+      summary: Read current AC state
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeviceStateResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+  /v1/devices/{id}/control:
+    post:
+      summary: Change one or more AC settings
+      description: Omitted settings are preserved. Configured startup defaults apply on an off-to-on
+        transition, before explicit values. Quiet/Eco linking is optional and disabled by default;
+        an explicit Eco value takes priority.
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ControlChanges"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeviceStateResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+  /v1/devices/{id}/power:
+    post:
+      summary: Turn an AC on or off
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+      requestBody:
+        $ref: "#/components/requestBodies/Power"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeviceStateResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+  /v1/devices/{id}/temperature:
+    post:
+      summary: Set target temperature
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+      requestBody:
+        $ref: "#/components/requestBodies/Temperature"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeviceStateResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+  /v1/devices/{id}/mode:
+    post:
+      summary: Set operating mode
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+      requestBody:
+        $ref: "#/components/requestBodies/Mode"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeviceStateResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+  /v1/devices/{id}/fan:
+    post:
+      summary: Set fan speed
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+      requestBody:
+        $ref: "#/components/requestBodies/Fan"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeviceStateResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+  /v1/devices/{id}/vertical-swing:
+    post:
+      summary: Enable or disable vertical swing
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+      requestBody:
+        $ref: "#/components/requestBodies/Enabled"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeviceStateResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+  /v1/devices/{id}/horizontal-swing:
+    post:
+      summary: Enable or disable horizontal swing
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+      requestBody:
+        $ref: "#/components/requestBodies/Enabled"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeviceStateResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+  /v1/devices/{id}/eco:
+    post:
+      summary: Set Eco level
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+      requestBody:
+        $ref: "#/components/requestBodies/Eco"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeviceStateResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+  /v1/devices/{id}/quiet:
+    post:
+      summary: Enable or disable Quiet mode
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+      requestBody:
+        $ref: "#/components/requestBodies/Enabled"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeviceStateResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+  /v1/auth/login:
+    post:
+      summary: Unlock the browser with the bridge access code
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+                  writeOnly: true
+      responses:
+        "200": &a4
+          description: Request completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+        "400": *a1
+        "401": *a2
+        "429":
+          description: Too many attempts; retry after 60 seconds
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "502": *a3
+  /v1/auth/logout:
+    post:
+      summary: End this browser session
+      responses:
+        "200": *a4
+        "400": *a1
+        "401": *a2
+        "502": *a3
+  /v1/setup:
+    get:
+      summary: Read setup progress
+      responses:
+        "200":
+          description: Setup state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                  cloudConnected:
+                    type: boolean
+                  deviceCount:
+                    type: integer
+        "400": *a1
+        "401": *a2
+        "502": *a3
+  /v1/token:
+    get:
+      summary: Reveal the API token to an authenticated administrator
+      responses:
+        "200":
+          description: Keep this token private
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        "400": *a1
+        "401": *a2
+        "502": *a3
+  /v1/settings:
+    get:
+      summary: Read power-on preferences
+      responses:
+        "200":
+          description: Preferences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+        "400": *a1
+        "401": *a2
+        "502": *a3
+    put:
+      summary: Replace power-on preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Settings"
+      responses:
+        "200":
+          description: Saved preferences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+        "400": *a1
+        "401": *a2
+        "502": *a3
+  /v1/cloud/login:
+    post:
+      summary: Sign in to Haismart and store a renewable session
+      description: The submitted password is not persisted. Uses the Haismart Southeast Asia service.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+                - zoneInfo
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                  writeOnly: true
+                zoneInfo:
+                  type: string
+                  pattern: ^\d{1,4}$
+                  description: Account country calling code without +
+      responses:
+        "200": *a4
+        "400": *a1
+        "401": *a2
+        "502": *a3
+  /v1/cloud/session:
+    delete:
+      summary: Forget the saved Haismart session
+      description:
+        Stored local keys remain. Environment-provided fallback credentials become active again
+        after a restart unless removed from the environment.
+      responses:
+        "200": *a4
+        "400": *a1
+        "401": *a2
+        "502": *a3
+  /v1/cloud/devices:
+    get:
+      summary: List account devices for setup
+      description: May include non-AC appliances. Listing does not establish protocol compatibility.
+      responses:
+        "200":
+          description: Account devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CloudDevice"
+        "400": *a1
+        "401": *a2
+        "502": *a3
+  /v1/discovery:
+    post:
+      summary: Find Haier devices on the local network
+      description:
+        Broadcast discovery, or a unicast probe when host is supplied. A scan lasts up to 3.5
+        seconds. Does not send control commands.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                host: &a5
+                  type: string
+                  description: Private LAN IPv4 address
+                  examples:
+                    - 192.168.1.50
+      responses:
+        "200":
+          description: Discovered devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    deviceId: &a8
+                      type: string
+                      pattern: ^[a-zA-Z0-9_-]{1,32}$
+                    host: *a5
+                    uplusId: &a6
+                      type: string
+                      description: 64-character hexadecimal model identifier, if known
+        "400": *a1
+        "401": *a2
+        "409":
+          description: Another scan is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "502": *a3
+  /v1/devices/{id}:
+    parameters:
+      - $ref: "#/components/parameters/DeviceId"
+    put:
+      summary: Edit an AC name, address, model identifier, or key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: &a7
+                  type: string
+                  minLength: 1
+                  maxLength: 80
+                host: *a5
+                uplusId: *a6
+                localKey: &a9
+                  type: string
+                  writeOnly: true
+                  pattern: ^[a-fA-F0-9]{32}$
+                localKeyVersion: &a10
+                  type: integer
+                  minimum: 1
+      responses:
+        "200":
+          description: Updated AC
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+        "400": *a1
+        "401": *a2
+        "502": *a3
+    delete:
+      summary: Remove an AC and its local key from this bridge
+      responses:
+        "200": *a4
+        "400": *a1
+        "401": *a2
+        "502": *a3
+  /v1/devices/{id}/refresh-key:
+    post:
+      summary: Retrieve a new local key from Haismart
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200": *a4
+        "400": *a1
+        "401": *a2
+        "502": *a3
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    browserSession:
+      type: apiKey
+      in: cookie
+      name: bridge_session
+      description: HttpOnly browser session created by POST /v1/auth/login.
+  parameters:
+    DeviceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^[a-z0-9][a-z0-9_-]{0,63}$
+  requestBodies:
+    Power:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - on
+            properties:
+              on:
+                type: boolean
+    Temperature:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - temperature
+            properties:
+              temperature:
+                type: integer
+                minimum: 16
+                maximum: 30
+    Mode:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - mode
+            properties:
+              mode:
+                $ref: "#/components/schemas/Mode"
+    Fan:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - fan
+            properties:
+              fan:
+                $ref: "#/components/schemas/FanSpeed"
+    Enabled:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - enabled
+            properties:
+              enabled:
+                type: boolean
+    Eco:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - eco
+            properties:
+              eco:
+                $ref: "#/components/schemas/EcoMode"
+  responses:
+    DeviceStateResponse:
+      description: AC state after the request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DeviceStateResponse"
+    Error:
+      description: Invalid request or local AC error
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - error
+            properties:
+              error:
+                type: string
+  schemas:
+    Device:
+      type: object
+      required:
+        - id
+        - name
+        - host
+        - deviceId
+        - localKeyVersion
+      properties:
+        id:
+          type: string
+          pattern: ^[a-z0-9][a-z0-9_-]{0,63}$
+        name:
+          type: string
+        host:
+          type: string
+        deviceId:
+          type: string
+        uplusId:
+          type: string
+        localKeyVersion:
+          type:
+            - integer
+            - "null"
+        keyUpdatedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+    DeviceStateResponse:
+      type: object
+      required:
+        - device
+        - state
+      properties:
+        device:
+          type: string
+          pattern: ^[a-z0-9][a-z0-9_-]{0,63}$
+        state:
+          $ref: "#/components/schemas/DeviceState"
+    DeviceState:
+      type: object
+      required:
+        - power
+        - targetTemperature
+        - currentTemperature
+        - outdoorTemperature
+        - mode
+        - fan
+        - verticalSwing
+        - horizontalSwing
+        - quiet
+        - eco
+      properties:
+        power:
+          type: boolean
+        targetTemperature:
+          type: number
+        currentTemperature:
+          type:
+            - number
+            - "null"
+        outdoorTemperature:
+          type:
+            - number
+            - "null"
+        mode:
+          anyOf:
+            - $ref: "#/components/schemas/Mode"
+            - type: "null"
+        fan:
+          anyOf:
+            - $ref: "#/components/schemas/FanSpeed"
+            - type: "null"
+        verticalSwing:
+          type:
+            - boolean
+            - "null"
+        horizontalSwing:
+          type:
+            - boolean
+            - "null"
+        quiet:
+          type: boolean
+        eco:
+          anyOf:
+            - $ref: "#/components/schemas/EcoMode"
+            - type: "null"
+    ControlChanges:
+      type: object
+      minProperties: 1
+      properties:
+        power:
+          type: boolean
+        temperature: &a11
+          type: integer
+          minimum: 16
+          maximum: 30
+        mode: &a12
+          $ref: "#/components/schemas/Mode"
+        fan: &a13
+          $ref: "#/components/schemas/FanSpeed"
+        verticalSwing: &a14
+          type: boolean
+        horizontalSwing: &a15
+          type: boolean
+        eco: &a16
+          $ref: "#/components/schemas/EcoMode"
+        quiet: &a17
+          type: boolean
+      additionalProperties: false
+    Mode:
+      type: string
+      enum:
+        - auto
+        - cool
+        - dry
+        - heat
+        - heating
+        - fan
+    FanSpeed:
+      type: string
+      enum:
+        - auto
+        - low
+        - medium
+        - high
+    EcoMode:
+      type: string
+      enum:
+        - off
+        - close
+        - l1
+        - l2
+        - l3
+    DeviceInput:
+      type: object
+      required:
+        - id
+        - name
+        - host
+        - deviceId
+      properties:
+        id:
+          type: string
+          pattern: ^[a-z0-9][a-z0-9_-]{0,63}$
+        name: *a7
+        host: *a5
+        deviceId: *a8
+        uplusId: *a6
+        localKey: *a9
+        localKeyVersion: *a10
+    Settings:
+      type: object
+      required:
+        - startup
+        - linkQuietEco
+      properties:
+        startup:
+          type: object
+          description: Optional startup defaults; empty means preserve the AC settings. Power is not allowed.
+          additionalProperties: false
+          properties:
+            temperature: *a11
+            mode: *a12
+            fan: *a13
+            verticalSwing: *a14
+            horizontalSwing: *a15
+            eco: *a16
+            quiet: *a17
+        linkQuietEco:
+          type: boolean
+          default: false
+    CloudDevice:
+      type: object
+      properties:
+        deviceId:
+          type: string
+        name:
+          type: string
+        uplusId:
+          type: string
+        model:
+          type: string
+        deviceType:
+          type: string

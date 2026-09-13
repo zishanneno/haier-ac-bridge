@@ -1,0 +1,23 @@
+services:
+  bridge:
+    image: ghcr.io/zishanneno/haier-ac-bridge:0.1.0
+    restart: unless-stopped
+    init: true
+    ports:
+      - "${BRIDGE_BIND_ADDRESS:-127.0.0.1}:${BRIDGE_PORT:-8787}:8787"
+    volumes:
+      - bridge-data:/app/data
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+volumes:
+  bridge-data:

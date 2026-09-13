@@ -1,0 +1,52 @@
+{
+  "name": "haier-ac-bridge",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@10.34.1",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ],
+    "ignoredBuiltDependencies": [
+      "@scarf/scarf",
+      "better-sqlite3"
+    ]
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc",
+    "check": "tsc --noEmit",
+    "test": "tsx --test test/bridge.test.ts test/contracts.test.ts test/reliability.test.ts test/web.test.ts",
+    "test:launchers": "node --test test/launcher.test.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^24.3.0",
+    "prettier": "^3.9.6",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "yaml": "^2.9.1"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.2",
+    "mqtt": "^5.15.2",
+    "swagger-ui-dist": "^5.32.11"
+  },
+  "description": "Local control for compatible Haier Haismart air conditioners, with guided setup and automatic local-key refresh.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zishanneno/haier-ac-bridge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zishanneno/haier-ac-bridge/issues"
+  },
+  "homepage": "https://github.com/zishanneno/haier-ac-bridge#readme"
+}
