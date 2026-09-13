@@ -4,6 +4,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # Preserve the release-age protection used when updating the pnpm lockfile.
+    cooldown:
+      default-days: 3
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -12,3 +15,7 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    # Runtime major upgrades need a coordinated Dockerfile and CI update.
+    ignore:
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]
