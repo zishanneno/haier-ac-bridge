@@ -1,4 +1,4 @@
-FROM node:24-trixie-slim AS build
+FROM node:26-trixie-slim AS build
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
 RUN corepack enable
@@ -11,7 +11,7 @@ COPY web ./web
 COPY test ./test
 RUN pnpm check && pnpm test && pnpm build && pnpm prune --prod
 
-FROM node:24-trixie-slim
+FROM node:26-trixie-slim
 LABEL org.opencontainers.image.source="https://github.com/zishanneno/haier-ac-bridge"
 LABEL org.opencontainers.image.description="Local control for compatible Haier Haismart air conditioners"
 LABEL org.opencontainers.image.licenses="MIT"
