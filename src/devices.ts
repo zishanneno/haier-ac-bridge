@@ -39,9 +39,10 @@ export function validateDevice(value: Record<string, unknown>): DeviceDefinition
   if (
     value.uplusId !== undefined &&
     value.uplusId !== "" &&
-    (typeof value.uplusId !== "string" || !/^[a-fA-F0-9]{64}$/.test(value.uplusId))
+    (typeof value.uplusId !== "string" ||
+      !/^(?:[a-fA-F0-9]{32}|[a-fA-F0-9]{64})$/.test(value.uplusId))
   ) {
-    throw new Error("Model identifier must contain 64 hexadecimal characters");
+    throw new Error("Model identifier must contain 32 or 64 hexadecimal characters");
   }
   return {
     id: value.id,
