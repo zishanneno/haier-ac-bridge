@@ -406,7 +406,7 @@ paths:
                     host: *a5
                     uplusId: &a6
                       type: string
-                      description: 64-character hexadecimal model identifier, if known
+                      description: 32- or 64-character hexadecimal model identifier, if known
         "400": *a1
         "401": *a2
         "409":
