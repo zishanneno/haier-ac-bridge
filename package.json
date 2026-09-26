@@ -1,7 +1,7 @@
 {
   "name": "haier-ac-bridge",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "packageManager": "pnpm@10.34.1",
   "pnpm": {
@@ -21,14 +21,14 @@
     "start": "node dist/server.js",
     "build": "tsc",
     "check": "tsc --noEmit",
-    "test": "tsx --test test/bridge.test.ts test/contracts.test.ts test/reliability.test.ts test/web.test.ts",
+    "test": "tsx --test test/bridge.test.ts test/contracts.test.ts test/reliability.test.ts test/web.test.ts test/model-41410.test.ts",
     "test:launchers": "node --test test/launcher.test.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
-    "@types/node": "^24.3.0",
+    "@types/node": "^26.6.1",
     "prettier": "^3.9.6",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
