@@ -1,6 +1,6 @@
 services:
   bridge:
-    image: ghcr.io/zishanneno/haier-ac-bridge:0.1.0
+    image: ghcr.io/zishanneno/haier-ac-bridge:0.1.1
     restart: unless-stopped
     init: true
     ports:

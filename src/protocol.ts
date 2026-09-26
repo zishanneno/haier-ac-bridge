@@ -1,6 +1,8 @@
 import { createCipheriv, createDecipheriv, createHash, randomInt } from "node:crypto";
 import { createConnection, Socket } from "node:net";
 
+import { commands41410, isModel41410, parse41410 } from "./protocol-41410.js";
+
 import type { DeviceConfig } from "./devices.js";
 import { DEFAULT_SETTINGS, type BridgeSettings } from "./settings.js";
 
@@ -274,7 +276,8 @@ function setWord(words: Buffer, word: number, shift: number, width: number, valu
   words.writeUInt16BE((current & ~mask) | ((value << shift) & mask), offset);
 }
 
-function parseStatus(blob: Buffer): AirConditionerState | null {
+function parseStatus(blob: Buffer, device: DeviceConfig): AirConditionerState | null {
+  if (isModel41410(device.uplusId)) return parse41410(blob);
   if (blob[2] !== 0x27 || blob[3] !== 0x15) return null;
   if (EXTENDED46_STATUS_LENGTHS.has(blob.length)) return parseExtended46(blob);
   if (blob.length !== 125 && blob.length !== 127) return null;
@@ -530,9 +533,12 @@ async function collectBlobs(
   return blobs;
 }
 
-function latestState(blobs: Buffer[]): { state: AirConditionerState; blob: Buffer } {
+function latestState(
+  blobs: Buffer[],
+  device: DeviceConfig,
+): { state: AirConditionerState; blob: Buffer } {
   for (const blob of [...blobs].reverse()) {
-    const state = parseStatus(blob);
+    const state = parseStatus(blob, device);
     if (state) return { state, blob };
   }
   throw new ProtocolError(
@@ -548,7 +554,7 @@ export async function readDeviceStatus(
 ): Promise<AirConditionerState> {
   const { socket, reader } = await handshake(device, openSocket);
   try {
-    return latestState(await collectBlobs(reader, device.localKey)).state;
+    return latestState(await collectBlobs(reader, device.localKey), device).state;
   } finally {
     socket.destroy();
   }
@@ -575,6 +581,52 @@ export async function controlDevice(
   settings: BridgeSettings = DEFAULT_SETTINGS,
   openSocket = connect,
 ): Promise<AirConditionerState> {
+  if (isModel41410(device.uplusId)) {
+    const baseline = await readDeviceStatus(device, openSocket);
+    const commands = commands41410(resolvedControlChanges(baseline, changes, settings));
+    let state = baseline;
+    for (const command of commands) {
+      // One command per fresh handshake: no assumptions about sequence reuse or
+      // whether this model keeps a connection open after acknowledging a write.
+      state = await controlWithCommand(
+        device,
+        () => buildEpp(command.opcode, command.data),
+        openSocket,
+      );
+      if (state[command.field] !== command.expected) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 500));
+        state = await readDeviceStatus(device, openSocket);
+      }
+      if (state[command.field] !== command.expected) {
+        throw new ProtocolError(
+          "AC did not confirm the requested " +
+            command.field +
+            " change; refresh status before retrying (earlier changes may have applied)",
+        );
+      }
+    }
+    return state;
+  }
+  return controlWithCommand(
+    device,
+    (baseline) =>
+      buildEpp(
+        Buffer.from([0x60, 0x01]),
+        controlWords(
+          baseline.blob,
+          resolvedControlChanges(baseline.state, changes, settings),
+          device,
+        ),
+      ),
+    openSocket,
+  );
+}
+
+async function controlWithCommand(
+  device: DeviceConfig,
+  command: (baseline: { state: AirConditionerState; blob: Buffer }) => Buffer,
+  openSocket: typeof connect,
+): Promise<AirConditionerState> {
   const { socket, reader, session } = await handshake(device, openSocket);
   let needsFollowUpStatusRead = false;
   try {
@@ -597,15 +649,11 @@ export async function controlDevice(
         }
       }
     }
-    const baseline = latestState([...earlyBlobs, ...(await collectBlobs(reader, device.localKey))]);
-    const epp = buildEpp(
-      Buffer.from([0x60, 0x01]),
-      controlWords(
-        baseline.blob,
-        resolvedControlChanges(baseline.state, changes, settings),
-        device,
-      ),
+    const baseline = latestState(
+      [...earlyBlobs, ...(await collectBlobs(reader, device.localKey))],
+      device,
     );
+    const epp = command(baseline);
     const request = buildControlRequest(epp, device.deviceId, 1);
     send(
       socket,
@@ -615,7 +663,7 @@ export async function controlDevice(
     const response = responseBlobs
       .slice()
       .reverse()
-      .map((blob) => parseStatus(blob))
+      .map((blob) => parseStatus(blob, device))
       .find((state): state is AirConditionerState => state !== null);
     if (response) return response;
 

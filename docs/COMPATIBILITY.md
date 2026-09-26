@@ -7,6 +7,7 @@ This bridge implements the local Haier uSS protocol used by some **Haismart** ai
 - Haismart email/phone-password accounts using the Southeast Asia cloud service.
 - Private IPv4 LAN addresses (10.x, 172.16–31.x, or 192.168.x); TCP 56800 for control.
 - Existing protocol support for 125/127-byte status layouts, plus 209/210-byte extended reports for the explicitly matched model identifier in `src/protocol.ts`.
+- Model `00000000000000008080000000041410`: 117-byte status reports and model-specific power, temperature, mode, fan, and swing commands. Captured status reports are covered by automated tests; real-device control verification is still pending. See [model details and testing](PROTOCOL-41410.md).
 - Temperature controls from 16 through 30 °C in whole degrees. Available modes/features still depend on the AC.
 
 The bridge has been used with my three ACs. Retail model numbers and firmware versions have not yet been recorded in a public compatibility matrix. The new onboarding flow is covered by mocked tests; that does not establish live cloud or hardware compatibility.

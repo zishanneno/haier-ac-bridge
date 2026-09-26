@@ -16,16 +16,16 @@ Keep published version tags immutable; fixes receive a new version. No moving `l
 
 ## Validate the intended tag
 
-For version `0.1.0`, run this from the repo folder on macOS/Linux:
+For version `0.1.1`, run this from the repo folder on macOS/Linux:
 
 ```sh
-RELEASE_TAG=v0.1.0 node scripts/check-release.mjs
+RELEASE_TAG=v0.1.1 node scripts/check-release.mjs
 ```
 
 In Windows PowerShell:
 
 ```powershell
-$env:RELEASE_TAG = "v0.1.0"
+$env:RELEASE_TAG = "v0.1.1"
 node scripts/check-release.mjs
 ```
 
