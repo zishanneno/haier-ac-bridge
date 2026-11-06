@@ -27,17 +27,17 @@
     "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
-    "@types/node": "^26.6.1",
-    "prettier": "^3.9.8",
-    "tsx": "^4.20.5",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.6.2",
+    "prettier": "^3.9.9",
+    "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "yaml": "^2.9.1"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",
     "mqtt": "^5.16.0",
-    "swagger-ui-dist": "^5.32.11"
+    "swagger-ui-dist": "^5.33.0"
   },
   "description": "Local control for compatible Haier Haismart air conditioners, with guided setup and automatic local-key refresh.",
   "license": "MIT",
