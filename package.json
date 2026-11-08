@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",
-    "mqtt": "^5.16.0",
+    "mqtt": "^5.16.1",
     "swagger-ui-dist": "^5.33.0"
   },
   "description": "Local control for compatible Haier Haismart air conditioners, with guided setup and automatic local-key refresh.",
